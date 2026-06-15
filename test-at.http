@@ -1,0 +1,35 @@
+### Test Seata AT - Trường hợp thành công (Success Case)
+# Tạo Order thành công và ghi nhận Payment thành công.
+POST http://localhost:8081/api/orders/at
+Content-Type: application/json
+
+{
+  "productId": "prod_001",
+  "quantity": 2,
+  "price": 15000.00,
+  "simulatePaymentError": false
+}
+
+
+### Test Seata AT - Trường hợp thất bại & Rollback (Rollback Case)
+# Mô phỏng lỗi thanh toán ở Payment Service.
+# Cả Order đã tạo ở Order Service và Payment (nếu có) sẽ tự động được rollback qua undo_log.
+POST http://localhost:8081/api/orders/at
+Content-Type: application/json
+
+{
+  "productId": "prod_002",
+  "quantity": 1,
+  "price": 25000.00,
+  "simulatePaymentError": true
+}
+
+
+### Lấy danh sách Orders để kiểm tra trạng thái
+GET http://localhost:8081/api/orders
+Accept: application/json
+
+
+### Lấy danh sách Payments để kiểm tra trạng thái
+GET http://localhost:8082/api/payments
+Accept: application/json
