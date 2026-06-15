@@ -32,4 +32,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public List<Payment> findAll() {
         return jpaPaymentRepository.findAll();
     }
+
+    @Override
+    public void deleteAll() {
+        jpaPaymentRepository.deleteAll();
+    }
 }

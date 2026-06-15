@@ -1,5 +1,5 @@
-CREATE DATABASE order_db;
-\c order_db;
+CREATE DATABASE "OrderService";
+\c "OrderService";
 CREATE TABLE IF NOT EXISTS undo_log
 (
     id            SERIAL PRIMARY KEY,
@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS undo_log
 );
 CREATE INDEX IF NOT EXISTS ix_undo_log_xid_branch_id ON undo_log(xid, branch_id);
 
-CREATE DATABASE payment_db;
-\c payment_db;
+CREATE DATABASE "PaymentService";
+\c "PaymentService";
 CREATE TABLE IF NOT EXISTS undo_log
 (
     id            SERIAL PRIMARY KEY,
@@ -29,3 +29,4 @@ CREATE TABLE IF NOT EXISTS undo_log
     CONSTRAINT ux_undo_log UNIQUE (xid, branch_id)
 );
 CREATE INDEX IF NOT EXISTS ix_undo_log_xid_branch_id ON undo_log(xid, branch_id);
+

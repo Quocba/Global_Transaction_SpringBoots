@@ -1,15 +1,64 @@
-version: '3.8'
-
 services:
-  seata-server:
-    image: seataio/seata-server:1.8.0
-    container_name: demo-seata-server
+  postgres:
+    image: postgres:15-alpine
+    container_name: demo-postgres
     ports:
-      - "8091:8091"
-      - "7091:7091"
+      - "5432:5432"
     environment:
-      - STORE_MODE=redis
-      - SEATA_STORE_REDIS_HOST=localhost
-      - SEATA_STORE_REDIS_PORT=6379
-      - SEATA_STORE_REDIS_PASSWORD=
-      - SEATA_STORE_REDIS_DATABASE=0
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin123@
+    volumes:
+      - ./docker/postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - kafka-net
+
+  order-service:
+    build: ./order-service
+    container_name: demo-order-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/OrderService
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SEATA_SERVICE_GROUPLIST_DEFAULT=host.docker.internal:8091
+      - APP_SERVICES_PAYMENT-URL=http://payment-service:8082
+    networks:
+      - kafka-net
+
+  payment-service:
+    build: ./payment-service
+    container_name: demo-payment-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/PaymentService
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SEATA_SERVICE_GROUPLIST_DEFAULT=host.docker.internal:8091
+    networks:
+      - kafka-net
+
+  coordinator-service:
+    build: ./coordinator-service
+    container_name: demo-coordinator-service
+    ports:
+      - "8083:8083"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - SEATA_SERVICE_GROUPLIST_DEFAULT=host.docker.internal:8091
+      - APP_SERVICES_ORDER-URL=http://order-service:8081
+      - APP_SERVICES_PAYMENT-URL=http://payment-service:8082
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    external: true

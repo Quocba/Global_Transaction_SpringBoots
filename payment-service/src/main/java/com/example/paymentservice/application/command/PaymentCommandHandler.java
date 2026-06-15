@@ -101,4 +101,10 @@ public class PaymentCommandHandler {
         payment.setTxId(RootContext.getXID());
         paymentRepository.save(payment);
     }
+
+    @Transactional
+    public void handleCleanAll() {
+        paymentRepository.deleteAll();
+    }
 }
+

@@ -1,0 +1,17 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: coordinator-service
+
+seata:
+  enabled: true
+  enable-auto-data-source-proxy: false
+  application-id: coordinator-service
+  tx-service-group: order_tx_group
+  service:
+    vgroup-mapping:
+      order_tx_group: default
+    grouplist:
+      default: 127.0.0.1:8091

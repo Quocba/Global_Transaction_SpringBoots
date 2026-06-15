@@ -32,4 +32,9 @@ public class OrderRepositoryImpl implements OrderRepository {
     public List<Order> findAll() {
         return jpaOrderRepository.findAll();
     }
+
+    @Override
+    public void deleteAll() {
+        jpaOrderRepository.deleteAll();
+    }
 }

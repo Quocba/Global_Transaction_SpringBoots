@@ -1,0 +1,56 @@
+### Test Coordinator Seata AT - Success Case
+POST http://localhost:8083/api/coordinator/at
+Content-Type: application/json
+
+{
+  "productId": "coord_prod_at_01",
+  "quantity": 2,
+  "price": 100.0,
+  "simulatePaymentError": false
+}
+
+
+### Test Coordinator Seata AT - Rollback Case
+POST http://localhost:8083/api/coordinator/at
+Content-Type: application/json
+
+{
+  "productId": "coord_prod_at_02",
+  "quantity": 1,
+  "price": 200.0,
+  "simulatePaymentError": true
+}
+
+
+### Test Coordinator Saga - Success Case
+POST http://localhost:8083/api/coordinator/saga
+Content-Type: application/json
+
+{
+  "productId": "coord_prod_saga_01",
+  "quantity": 3,
+  "price": 50.0,
+  "simulatePaymentError": false
+}
+
+
+### Test Coordinator Saga - Rollback Case
+POST http://localhost:8083/api/coordinator/saga
+Content-Type: application/json
+
+{
+  "productId": "coord_prod_saga_02",
+  "quantity": 1,
+  "price": 300.0,
+  "simulatePaymentError": true
+}
+
+
+### Get All Orders
+GET http://localhost:8081/api/orders
+Accept: application/json
+
+
+### Get All Payments
+GET http://localhost:8082/api/payments
+Accept: application/json

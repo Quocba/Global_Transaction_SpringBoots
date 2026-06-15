@@ -9,4 +9,5 @@ public interface OrderRepository {
     Optional<Order> findById(Long id);
     Optional<Order> findByTxId(String txId);
     List<Order> findAll();
+    void deleteAll();
 }

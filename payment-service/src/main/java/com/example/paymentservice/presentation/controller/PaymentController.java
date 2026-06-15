@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
@@ -87,4 +88,15 @@ public class PaymentController {
             return ResponseEntity.status(500).body(new ApiResponse<>(500, e.getMessage(), null));
         }
     }
+
+    @DeleteMapping("/clean-all")
+    public ResponseEntity<ApiResponse<String>> cleanAllPayments() {
+        try {
+            paymentCommandHandler.handleCleanAll();
+            return ResponseEntity.ok(new ApiResponse<>(200, "Clean all payments success", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500, e.getMessage(), null));
+        }
+    }
 }
+
