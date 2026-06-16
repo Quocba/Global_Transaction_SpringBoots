@@ -62,7 +62,8 @@ public class TransactionOrchestrator {
         try {
             paymentServiceStub.processPayment(paymentReq);
         } catch (Exception e) {
-            throw new RuntimeException("Payment processing failed in gRPC AT mode. Global transaction will rollback.", e);
+            throw new RuntimeException("Payment processing failed in gRPC AT mode. Global transaction will rollback.",
+                    e);
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -248,6 +249,3 @@ public class TransactionOrchestrator {
         }
     }
 }
-
-
-
