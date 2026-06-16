@@ -17,7 +17,7 @@ public class OrderTccActionImpl implements OrderTccAction {
     @Override
     @Transactional
     public Long prepare(BusinessActionContext context, String productId, Integer quantity, BigDecimal price) {
-        String xid = context.getXid();
+        String xid = context != null ? context.getXid() : io.seata.core.context.RootContext.getXID();
         Order order = new Order();
         order.setProductId(productId);
         order.setQuantity(quantity);

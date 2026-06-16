@@ -42,3 +42,7 @@ seata:
       order_tx_group: default
     grouplist:
       default: 127.0.0.1:8091
+
+grpc:
+  server:
+    port: 9091

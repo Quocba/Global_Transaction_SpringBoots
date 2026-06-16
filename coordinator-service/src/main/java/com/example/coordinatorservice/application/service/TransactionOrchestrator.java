@@ -9,6 +9,13 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import com.example.orderservice.presentation.grpc.OrderServiceGrpc;
+import com.example.orderservice.presentation.grpc.CreateOrderRequest;
+import com.example.orderservice.presentation.grpc.OrderResponse;
+import com.example.paymentservice.presentation.grpc.PaymentServiceGrpc;
+import com.example.paymentservice.presentation.grpc.PaymentRequest;
+import com.example.paymentservice.presentation.grpc.PaymentResponse;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 
 @Service
 public class TransactionOrchestrator {
@@ -21,6 +28,51 @@ public class TransactionOrchestrator {
 
     @Value("${app.services.payment-url:http://localhost:8082}")
     private String paymentServiceUrl;
+
+    @GrpcClient("order-service")
+    private OrderServiceGrpc.OrderServiceBlockingStub orderServiceStub;
+
+    @GrpcClient("payment-service")
+    private PaymentServiceGrpc.PaymentServiceBlockingStub paymentServiceStub;
+
+    @GlobalTransactional(name = "coordinator-global-grpc-at", rollbackFor = Exception.class)
+    public Map<String, Object> executeGlobalTransactionGrpcAt(TransactionRequest request) {
+        CreateOrderRequest orderReq = CreateOrderRequest.newBuilder()
+                .setProductId(request.getProductId())
+                .setQuantity(request.getQuantity())
+                .setPrice(request.getPrice().doubleValue())
+                .setSimulatePaymentError(request.getSimulatePaymentError())
+                .build();
+
+        OrderResponse orderResponse;
+        try {
+            orderResponse = orderServiceStub.createOrder(orderReq);
+        } catch (Exception e) {
+            throw new RuntimeException("Order creation failed in gRPC AT mode", e);
+        }
+
+        long orderId = orderResponse.getId();
+
+        PaymentRequest paymentReq = PaymentRequest.newBuilder()
+                .setOrderId(orderId)
+                .setAmount(request.getPrice().multiply(new BigDecimal(request.getQuantity())).doubleValue())
+                .setSimulatePaymentError(request.getSimulatePaymentError())
+                .build();
+
+        try {
+            paymentServiceStub.processPayment(paymentReq);
+        } catch (Exception e) {
+            throw new RuntimeException("Payment processing failed in gRPC AT mode. Global transaction will rollback.", e);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", orderId);
+        result.put("productId", orderResponse.getProductId());
+        result.put("quantity", orderResponse.getQuantity());
+        result.put("price", orderResponse.getPrice());
+        result.put("status", orderResponse.getStatus());
+        return result;
+    }
 
     @GlobalTransactional(name = "coordinator-global-at", rollbackFor = Exception.class)
     public Map<String, Object> executeGlobalTransactionAt(TransactionRequest request) {
@@ -88,8 +140,10 @@ public class TransactionOrchestrator {
         paymentReq.put("amount", request.getPrice().multiply(new BigDecimal(request.getQuantity())));
         paymentReq.put("simulatePaymentError", request.getSimulatePaymentError());
 
+        boolean paymentSuccess = false;
         try {
             restTemplate.postForEntity(paymentUrl, paymentReq, Map.class);
+            paymentSuccess = true;
 
             String approveUrl = orderServiceUrl + "/api/orders/" + orderId.longValue() + "/status?status=APPROVED";
             restTemplate.put(approveUrl, null);
@@ -101,10 +155,12 @@ public class TransactionOrchestrator {
             } catch (Exception ex) {
             }
 
-            try {
-                String compensatePaymentUrl = paymentServiceUrl + "/api/payments/saga/compensate";
-                restTemplate.postForEntity(compensatePaymentUrl, paymentReq, Map.class);
-            } catch (Exception ex) {
+            if (paymentSuccess) {
+                try {
+                    String compensatePaymentUrl = paymentServiceUrl + "/api/payments/saga/compensate";
+                    restTemplate.postForEntity(compensatePaymentUrl, paymentReq, Map.class);
+                } catch (Exception ex) {
+                }
             }
 
             throw new RuntimeException("Saga Transaction failed. Compensating transactions executed.", e);

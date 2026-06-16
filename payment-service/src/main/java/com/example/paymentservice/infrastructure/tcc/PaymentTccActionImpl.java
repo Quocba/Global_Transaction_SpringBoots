@@ -20,7 +20,7 @@ public class PaymentTccActionImpl implements PaymentTccAction {
         if (Boolean.TRUE.equals(simulatePaymentError)) {
             throw new RuntimeException("Simulated payment error in TCC phase");
         }
-        String xid = context.getXid();
+        String xid = context != null ? context.getXid() : io.seata.core.context.RootContext.getXID();
         Payment payment = new Payment();
         payment.setOrderId(orderId);
         payment.setAmount(amount);

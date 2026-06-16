@@ -17,6 +17,7 @@ services:
     container_name: demo-order-service
     ports:
       - "8081:8081"
+      - "9091:9091"
     depends_on:
       - postgres
     extra_hosts:
@@ -34,6 +35,7 @@ services:
     container_name: demo-payment-service
     ports:
       - "8082:8082"
+      - "9092:9092"
     depends_on:
       - postgres
     extra_hosts:
@@ -56,6 +58,8 @@ services:
       - SEATA_SERVICE_GROUPLIST_DEFAULT=host.docker.internal:8091
       - APP_SERVICES_ORDER-URL=http://order-service:8081
       - APP_SERVICES_PAYMENT-URL=http://payment-service:8082
+      - APP_SERVICES_ORDER_GRPC_HOST=order-service
+      - APP_SERVICES_PAYMENT_GRPC_HOST=payment-service
     networks:
       - kafka-net
 

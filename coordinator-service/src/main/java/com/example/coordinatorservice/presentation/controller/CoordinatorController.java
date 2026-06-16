@@ -30,6 +30,16 @@ public class CoordinatorController {
         }
     }
 
+    @PostMapping("/grpc-at")
+    public ApiResponse<Map<String, Object>> createTransactionGrpcAt(@RequestBody TransactionRequest request) {
+        try {
+            Map<String, Object> data = transactionOrchestrator.executeGlobalTransactionGrpcAt(request);
+            return new ApiResponse<>(200, "Global Transaction Success (gRPC AT Mode)", data);
+        } catch (Exception e) {
+            return new ApiResponse<>(500, e.getMessage(), null);
+        }
+    }
+
     @PostMapping("/saga")
     public ApiResponse<Map<String, Object>> createTransactionSaga(@RequestBody TransactionRequest request) {
         try {

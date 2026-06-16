@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.orderservice.presentation.grpc";
+option java_outer_classname = "OrderProto";
+
+service OrderService {
+    rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+}
+
+message CreateOrderRequest {
+    string productId = 1;
+    int32 quantity = 2;
+    double price = 3;
+    bool simulatePaymentError = 4;
+}
+
+message OrderResponse {
+    int64 id = 1;
+    string productId = 2;
+    int32 quantity = 3;
+    double price = 4;
+    string status = 5;
+}
