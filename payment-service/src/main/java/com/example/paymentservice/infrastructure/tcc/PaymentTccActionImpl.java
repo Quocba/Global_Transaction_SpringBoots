@@ -16,7 +16,8 @@ public class PaymentTccActionImpl implements PaymentTccAction {
 
     @Override
     @Transactional
-    public boolean prepare(BusinessActionContext context, Long orderId, BigDecimal amount, Boolean simulatePaymentError) {
+    public boolean prepare(BusinessActionContext context, Long orderId, BigDecimal amount,
+            Boolean simulatePaymentError) {
         if (Boolean.TRUE.equals(simulatePaymentError)) {
             throw new RuntimeException("Simulated payment error in TCC phase");
         }
